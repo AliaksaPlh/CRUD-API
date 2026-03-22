@@ -3,6 +3,10 @@ import type { CreateProductInput, Product } from "./schemas.js";
 
 const productsById = new Map<string, Product>();
 
+export const resetProductStore = (): void => {
+  productsById.clear();
+};
+
 export const productRepository = {
   async findAll(): Promise<Array<Product>> {
     return Array.from(productsById.values());

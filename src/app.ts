@@ -1,9 +1,13 @@
 import Fastify from "fastify";
 import { productsRoutes } from "./products/routes.js";
 
-export const buildApp = () => {
+type BuildAppOptions = {
+  logger?: boolean;
+};
+
+export const buildApp = (options?: BuildAppOptions) => {
   const app = Fastify({
-    logger: true,
+    logger: options?.logger ?? true,
   });
 
   void app.register(productsRoutes, { prefix: "/api/products" });
