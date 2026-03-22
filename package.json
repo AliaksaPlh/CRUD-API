@@ -11,6 +11,7 @@
     "start:dev": "nodemon --watch src --ext ts --exec tsx src/server.ts",
     "start:prod": "npm run build:prod && node dist/server.bundle.mjs",
     "dev": "npm run start:dev",
+    "start:multi": "tsx src/multi.ts",
     "test": "tsx --test \"test/**/*.test.ts\""
   },
   "repository": {

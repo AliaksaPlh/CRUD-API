@@ -1,54 +1,49 @@
-import { randomUUID } from "node:crypto";
 import type { CreateProductInput, Product } from "./schemas.js";
+import {
+  MemoryProductStore,
+  type ProductRepositoryBackend,
+} from "./memory-store.js";
 
-const productsById = new Map<string, Product>();
+const defaultStore = new MemoryProductStore();
+
+let backend: ProductRepositoryBackend = defaultStore;
+
+export const setProductRepositoryBackend = (
+  next: ProductRepositoryBackend,
+): void => {
+  backend = next;
+};
 
 export const resetProductStore = (): void => {
-  productsById.clear();
+  if (backend !== defaultStore) {
+    return;
+  }
+  defaultStore.clear();
 };
 
 export const productRepository = {
   async findAll(): Promise<Array<Product>> {
-    return Array.from(productsById.values());
+    return backend.findAll();
   },
 
   async findById(id: string): Promise<Product | undefined> {
-    return productsById.get(id);
+    return backend.findById(id);
   },
 
   async create(input: CreateProductInput): Promise<Product> {
-    const product: Product = {
-      id: randomUUID(),
-      name: input.name,
-      description: input.description,
-      price: input.price,
-      category: input.category,
-      inStock: input.inStock,
-    };
-    productsById.set(product.id, product);
-    return product;
+    return backend.create(input);
   },
 
   async update(
     id: string,
     input: CreateProductInput,
   ): Promise<Product | undefined> {
-    if (!productsById.has(id)) {
-      return undefined;
-    }
-    const updated: Product = {
-      id,
-      name: input.name,
-      description: input.description,
-      price: input.price,
-      category: input.category,
-      inStock: input.inStock,
-    };
-    productsById.set(id, updated);
-    return updated;
+    return backend.update(id, input);
   },
 
   async delete(id: string): Promise<boolean> {
-    return productsById.delete(id);
+    return backend.delete(id);
   },
 };
+
+export { MemoryProductStore };

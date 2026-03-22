@@ -1,84 +1,201 @@
-# Assignment: CRUD API
+# CRUD API — Product Catalog
 
-## Description
+REST API built with **Fastify** and **TypeScript**, using an in-memory store, **Zod** validation, and an optional **cluster** mode with an HTTP load balancer.
 
-Your task is to implement a simple CRUD API for a **Product Catalog** using an in-memory database underneath. Use **Fastify** as the framework.
+Official assignment: [CRUD API (nodejs-assignments)](https://github.com/AlreadyBored/nodejs-assignments/blob/main/assignments-v2/03-crud-api/assignment.md).
 
-## Technical requirements
+---
 
-- Task can be implemented in JavaScript or TypeScript
-- Use [Fastify](https://fastify.dev/) as the web framework
-- Only `fastify`, `@fastify/*` plugins, `nodemon`, `dotenv`, `cross-env`, `typescript`, `ts-node`, `ts-node-dev`, `tsx`, `zod` and `zod`-related linter and its plugins, bundler and its plugins and loaders, formatter and its plugins, `uuid`, `@types/*` as well as libraries used for testing are allowed
-- Use 24.x.x version (24.10.0 or upper) of Node.js
-- Prefer asynchronous API whenever possible
+## Prerequisites
 
-## Implementation details
+- **Node.js** `>= 24.10.0` (see `engines` in `package.json`)
 
-1. Implemented endpoint `api/products`:
-   - **GET** `api/products` is used to get all products
-     - Server should answer with `status code` **200** and all product records
-   - **GET** `api/products/{productId}`
-     - Server should answer with `status code` **200** and the record with `id === productId` if it exists
-     - Server should answer with `status code` **400** and corresponding message if `productId` is invalid (not `uuid`)
-     - Server should answer with `status code` **404** and corresponding message if record with `id === productId` doesn't exist
-   - **POST** `api/products` is used to create a record about a new product and store it in the database
-     - Server should answer with `status code` **201** and newly created record
-     - Server should answer with `status code` **400** and corresponding message if request `body` does not contain **required** fields or if `price` is not a positive number
-   - **PUT** `api/products/{productId}` is used to update an existing product
-     - Server should answer with `status code` **200** and the updated record
-     - Server should answer with `status code` **400** and corresponding message if `productId` is invalid (not `uuid`)
-     - Server should answer with `status code` **404** and corresponding message if record with `id === productId` doesn't exist
-   - **DELETE** `api/products/{productId}` is used to delete an existing product from the database
-     - Server should answer with `status code` **204** if the record is found and deleted
-     - Server should answer with `status code` **400** and corresponding message if `productId` is invalid (not `uuid`)
-     - Server should answer with `status code` **404** and corresponding message if record with `id === productId` doesn't exist
+---
 
-2. Products are stored as `objects` that have the following properties:
-   - `id` — unique identifier (`string`, `uuid`) generated on the server side
-   - `name` — product name (`string`, **required**)
-   - `description` — product description (`string`, **required**)
-   - `price` — product price (`number`, **required**, must be > 0)
-   - `category` — product category (`string`, **required**, e.g. `"electronics"`, `"books"`, `"clothing"`)
-   - `inStock` — whether the product is in stock (`boolean`, **required**)
+## Installation
 
-3. Requests to non-existing endpoints (e.g. `/some-non/existing/resource`) should be handled (server should answer with `status code` **404** and corresponding human-friendly message)
+1. Clone the repository and open the project directory:
 
-4. Errors on the server side that occur during the processing of a request should be handled and processed correctly (server should answer with `status code` **500** and corresponding human-friendly message)
+   ```bash
+   git clone <repository-url>
+   cd CRUD-API
+   ```
 
-5. Value of `port` on which the application is running should be stored in `.env` file
+2. Install dependencies:
 
-- **Important:** The `.env` file itself should not be committed to the repository as it is considered a security bad practice. Please consider adding the `.env` file to `.gitignore`.
-  - Instead, create and commit an `.env.example` file that contains a list of required environment variables with reasonable default values
-  - Example of `.env.example` contents:
+   ```bash
+   npm ci
+   ```
 
-    ```
-    PORT=4000
-    ```
+   (Use `npm install` if you are not relying on a lockfile in CI.)
 
-6. There should be 2 modes of running the application (**development** and **production**):
-   - The application is run in development mode using `nodemon` or `ts-node-dev` or `tsx` (there is an `npm` script `start:dev`)
-   - The application is run in production mode (there is an `npm` script `start:prod` that starts the build process and then runs the bundled file)
+---
 
-7. There could be some tests for the API (not less than **3** scenarios). Example of a test scenario:
-   1. Get all records with a `GET` `api/products` request (an empty array is expected)
-   2. A new object is created by a `POST` `api/products` request (a response containing the newly created record is expected)
-   3. With a `GET` `api/products/{productId}` request, we try to get the created record by its `id` (the created record is expected)
-   4. We try to update the created record with a `PUT` `api/products/{productId}` request (a response is expected containing an updated object with the same `id`)
-   5. With a `DELETE` `api/products/{productId}` request, we delete the created object by `id` (confirmation of successful deletion is expected)
-   6. With a `GET` `api/products/{productId}` request, we are trying to get the deleted object by `id` (expected answer is that there is no such object)
+## Environment variables
 
-8. There could be implemented horizontal scaling for the application. There should be an `npm` script `start:multi` that starts multiple instances of your application using the Node.js `Cluster` API (equal to the number of available parallelism - 1 on the host machine, each listening on port PORT + n) with a **load balancer** that distributes requests across them (using Round-robin algorithm). For example: available parallelism is 4, `PORT` is 4000. On run `npm run start:multi` it works the following way:
+1. Copy the example file and set the port:
 
-- On `localhost:4000/api` the load balancer is listening for requests
-- On `localhost:4001/api`, `localhost:4002/api`, `localhost:4003/api` workers are listening for requests from the load balancer
-- When user sends a request to `localhost:4000/api`, the load balancer sends this request to `localhost:4001/api`, the next user request is sent to `localhost:4002/api` and so on
-- After sending a request to `localhost:4003/api`, the load balancer starts from the first worker again (sends request to `localhost:4001/api`)
-- State of the db should be consistent between different workers, for example:
-  1. First `POST` request addressed to `localhost:4001/api` creates a product
-  2. Second `GET` request addressed to `localhost:4002/api` should return the created product
-  3. Third `DELETE` request addressed to `localhost:4003/api` deletes the created product
-  4. Fourth `GET` request addressed to `localhost:4001/api` should return **404** status code for the created product
+   ```bash
+   cp .env.example .env
+   ```
 
-## Hints
+2. In **`.env`**, set at least:
 
-- To generate all entities `id`s use [Node.js randomUUID](https://nodejs.org/dist/latest-v24.x/docs/api/crypto.html#cryptorandomuuidoptions)
+   | Variable | Description |
+   |----------|-------------|
+   | `PORT` | HTTP server port (integer 1–65535). The app will not start without `PORT`. |
+   | `HOST` | Optional. Defaults to `0.0.0.0` (listen on all interfaces). Use `127.0.0.1` for localhost only. |
+
+**`.env`** is listed in **`.gitignore`** and **must not be committed**. Only **`.env.example`** is tracked in the repository.
+
+---
+
+## Running the application
+
+Run all commands from the project root (where `package.json` is).
+
+### Development (`start:dev`)
+
+Restarts when `.ts` files change (nodemon + tsx):
+
+```bash
+npm run start:dev
+```
+
+Alias:
+
+```bash
+npm run dev
+```
+
+### Production (`start:prod`)
+
+Typecheck, **esbuild** bundle, then run:
+
+```bash
+npm run start:prod
+```
+
+### Build bundle only (no server)
+
+```bash
+npm run build:prod
+```
+
+### Run an existing bundle
+
+After `npm run build:prod` (or in CI):
+
+```bash
+npm start
+```
+
+Runs `node dist/server.bundle.mjs` (requires a fresh bundle and a valid `.env`).
+
+### TypeScript compile (no bundle)
+
+```bash
+npm run build
+```
+
+Output goes to `dist/`.
+
+### Horizontal scaling (`start:multi`)
+
+Node.js **cluster**: the **primary** process holds a single in-memory store and an **HTTP load balancer** on **`PORT`**; workers listen on **`PORT + 1` … `PORT + N`** with `N = max(1, availableParallelism − 1)`. Requests whose path starts with `/api` are forwarded **round-robin** to workers.
+
+```bash
+npm run start:multi
+```
+
+Example with `PORT=4000` and three workers: load balancer at `http://localhost:4000/api/...`, workers at `http://localhost:4001`, `4002`, `4003` (same routes such as `/api/products`).
+
+---
+
+## Using the API
+
+Base URL (single process or worker): **`http://localhost:<PORT>`** (use your `PORT` from `.env`).
+
+Product JSON body (`id` is generated by the server):
+
+| Field | Type | Rule |
+|-------|------|------|
+| `name` | string | Required, non-empty |
+| `description` | string | Required |
+| `price` | number | Required, must be `> 0` |
+| `category` | string | Required, non-empty (e.g. `electronics`, `books`, `clothing`) |
+| `inStock` | boolean | Required (`true` / `false`) |
+
+### Endpoints
+
+| Method | Path | Success | Errors |
+|--------|------|---------|--------|
+| `GET` | `/api/products` | **200** — array of products | — |
+| `GET` | `/api/products/:productId` | **200** — product | **400** invalid UUID, **404** not found |
+| `POST` | `/api/products` | **201** — created product (with `id`) | **400** invalid body |
+| `PUT` | `/api/products/:productId` | **200** — updated product | **400** UUID/body, **404** |
+| `DELETE` | `/api/products/:productId` | **204** empty body | **400** UUID, **404** |
+
+Unknown paths return **404** with JSON `{ "message": "..." }`. Unhandled server errors return **500** with a generic message.
+
+### `curl` examples
+
+Replace `4000` with your `PORT` and `PRODUCT_ID` with the UUID from a `POST` response.
+
+```bash
+# List products
+curl -s http://localhost:4000/api/products
+
+# Create
+curl -s -X POST http://localhost:4000/api/products \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Book","description":"Novel","price":12.5,"category":"books","inStock":true}'
+
+# Get by id
+curl -s http://localhost:4000/api/products/PRODUCT_ID
+
+# Update
+curl -s -X PUT http://localhost:4000/api/products/PRODUCT_ID \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Book","description":"Updated","price":15,"category":"books","inStock":false}'
+
+# Delete
+curl -s -o /dev/null -w "%{http_code}\n" -X DELETE http://localhost:4000/api/products/PRODUCT_ID
+```
+
+---
+
+## npm scripts
+
+| Script | Purpose |
+|--------|---------|
+| `npm run dev` | Alias for `start:dev` |
+| `npm run start:dev` | Development: nodemon + tsx |
+| `npm run start:prod` | Production: `build:prod` + run bundle |
+| `npm run build:prod` | `tsc --noEmit` + esbuild → `dist/server.bundle.mjs` |
+| `npm start` | Run `dist/server.bundle.mjs` |
+| `npm run build` | Compile TypeScript to `dist/` |
+| `npm run start:multi` | Cluster + load balancer (`src/multi.ts`) |
+| `npm test` | API tests (`node:test` + `tsx`) |
+
+---
+
+## Tests
+
+```bash
+npm test
+```
+
+Covers a full CRUD lifecycle, invalid `productId`, and invalid `POST` body (at least three distinct scenarios).
+
+---
+
+## Stack
+
+**Fastify**, **TypeScript**, **Zod**, **dotenv**, **tsx**, **nodemon**, **esbuild** (bundler), **@types/node**. Product IDs use **`randomUUID()`** from `node:crypto`.
+
+---
+
+## License
+
+ISC (see `package.json`).
