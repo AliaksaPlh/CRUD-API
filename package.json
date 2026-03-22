@@ -1,0 +1,42 @@
+{
+  "name": "crud-api",
+  "version": "1.0.0",
+  "description": "https://github.com/AlreadyBored/nodejs-assignments/blob/main/assignments-v2/03-crud-api/assignment.md",
+  "type": "module",
+  "main": "dist/server.bundle.mjs",
+  "scripts": {
+    "build": "tsc",
+    "build:prod": "tsc --noEmit && esbuild src/server.ts --bundle --platform=node --target=node24 --packages=external --format=esm --outfile=dist/server.bundle.mjs",
+    "start": "node dist/server.bundle.mjs",
+    "start:dev": "nodemon --watch src --ext ts --exec tsx src/server.ts",
+    "start:prod": "npm run build:prod && node dist/server.bundle.mjs",
+    "dev": "npm run start:dev",
+    "start:multi": "tsx src/multi.ts",
+    "test": "tsx --test \"test/**/*.test.ts\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AliaksaPlh/CRUD-API.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AliaksaPlh/CRUD-API/issues"
+  },
+  "homepage": "https://github.com/AliaksaPlh/CRUD-API#readme",
+  "engines": {
+    "node": ">=24.10.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "fastify": "^5.8.2",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "esbuild": "^0.27.4",
+    "nodemon": "^3.1.14",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
